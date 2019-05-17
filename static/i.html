@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <script src="https://unpkg.com/react@15/dist/react.min.js"></script>
+    <script src="https://unpkg.com/react-dom@15/dist/react-dom.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    
+    <style class="anchorjs"></style>
+
+    <title>Word Generator</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+        class Hello extends React.Component {
+
+            constructor(){
+                super();
+                this.state = {message: "Message from the state"}
+                this.updateMessage = this.updateMessage.bind(this);
+            }
+
+            updateMessage(){
+                this.setState({message: "the new message"})
+            }
+
+            render() {
+                return (
+                    <div>
+                    <h1>Hello {this.state.message}!</h1>
+                    <button onClick={this.updateMessage}>Click!</button>
+                    </div>   
+                )
+            }    
+            }    
+
+            class WordsList extends React.Component{
+            constructor(){
+                super();
+                this.state = {words: [], letters:"likscy", wordSize:"3", mask:""}
+                this.updateMessage = this.updateMessage.bind(this);
+                this.handleLetterChange = this.handleLetterChange.bind(this);
+                this.handleSizeChange = this.handleSizeChange.bind(this);
+                this.handleMaskChange = this.handleMaskChange.bind(this);
+                this.wordClick = this.wordClick.bind(this)
+            }
+
+            updateMessage(){
+                this.requestData()
+                console.log("step4")
+            }
+
+            requestData(){
+                console.log("step1")
+
+                const userAction = async () => {
+                    console.log("step2")
+                    const response = await fetch('http://localhost:5000/words_unfiltered/?letters='+
+                        this.state.letters+'&word_len=' + this.state.wordSize + 
+                        '&word_mask=' + this.state.mask);
+                    const myJson = await response.json(); //extract JSON from the http response
+                    this.setState({words: myJson})
+                }
+                
+                // result = userAction()
+                // console.log("result is ")
+                return userAction()
+            }
+
+            handleLetterChange(e) {
+                this.setState({ letters: e.target.value })
+                this.updateMessage()
+            }
+
+            handleSizeChange(e) {
+                this.setState({ wordSize: e.target.value, mask:"" })
+            }
+
+            handleMaskChange(e) {
+                this.setState({ mask: e.target.value })
+            }
+
+            wordClick(e){
+                this.setState({ mask: e.target.id })
+            }
+
+            biuldSelectWordSize(){
+                let res = []
+                let wSize = this.state.wordSize
+                let i = 0
+                console.log("the size is " + wSize)
+                for (i=1; i<(parseInt(wSize)+1); i++){
+                    console.log("size step " + i)
+                    res.push(<option value>{i}</option>)
+                }
+                return res
+            }
+
+            render() {
+                return (
+                    <div>
+                        <legend>Word's Generator</legend>
+                        <div className="card">
+                            <div className="card-header">
+                                Parameters
+                            </div>
+
+                            <div className="container">  
+                                <div className="row">
+                                    <div className="col">
+                                        <label for="letters">Letters</label>
+                                    </div>
+                                    <div className="col">
+                                        <input id="letters" onChange={this.handleLetterChange} value={this.state.letters} type="text"/>
+                                    </div>
+                                </div>
+                                <div className="row">
+                                    <div className="col">
+                                        <label for="wordsize">Word Size</label>
+                                    </div>
+                                    <div className="col">
+                                        <input id="wordsize" onChange={this.handleSizeChange} value={this.state.wordSize} type="text"/>
+                                        <select>
+                                        {
+                                            this.biuldSelectWordSize()
+                                        }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="row">
+                                    <div className="col">
+                                        <label for="mask">Mask</label>
+                                    </div>
+                                    <div className="col">
+                                        <input id="mask" onChange={this.handleMaskChange} value={this.state.mask} type="text"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" className="btn btn-secondary" onClick={this.updateMessage}>show</button>
+                        </div>
+                        <div className="container">
+                            <table className="table table-hover">
+                                {
+                                    this.state.words.map(word => {
+                                        return (
+                                            <tr><td onClick={this.wordClick} id={word}>
+                                                {word}
+                                            </td></tr>
+                                        )
+                                    })
+                                }
+                                
+                            </table>
+                        </div>
+                    </div>   
+                )
+            }    
+        }
+
+        ReactDOM.render(
+        <WordsList />, 
+        document.getElementById("root")
+        );
+    </script>
+
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  </body>
+</html>
