@@ -22,40 +22,19 @@
   <body>
     <div id="root"></div>
     <script type="text/babel">
-        class Hello extends React.Component {
-
-            constructor(){
-                super();
-                this.state = {message: "Message from the state"}
-                this.updateMessage = this.updateMessage.bind(this);
-            }
-
-            updateMessage(){
-                this.setState({message: "the new message"})
-            }
-
-            render() {
-                return (
-                    <div>
-                    <h1>Hello {this.state.message}!</h1>
-                    <button onClick={this.updateMessage}>Click!</button>
-                    </div>   
-                )
-            }    
-            }    
-
             class WordsList extends React.Component{
             constructor(){
                 super();
                 this.state = {words: [], letters:"likscy", wordSize:"3", mask:""}
-                this.updateMessage = this.updateMessage.bind(this);
+                this.handleButtnClick = this.handleButtnClick.bind(this);
                 this.handleLetterChange = this.handleLetterChange.bind(this);
                 this.handleSizeChange = this.handleSizeChange.bind(this);
                 this.handleMaskChange = this.handleMaskChange.bind(this);
+                this.handleSizeSelChange = this.handleSizeSelChange.bind(this)
                 this.wordClick = this.wordClick.bind(this)
             }
 
-            updateMessage(){
+            handleButtnClick(){
                 this.requestData()
                 console.log("step4")
             }
@@ -64,7 +43,8 @@
                 console.log("step1")
 
                 const userAction = async () => {
-                    console.log("step2")
+                    console.log(this.state)
+                    console.log("step2 letters = " + this.state.letters + " size is " + this.state.wordSize)
                     const response = await fetch('http://localhost:5000/words_unfiltered/?letters='+
                         this.state.letters+'&word_len=' + this.state.wordSize + 
                         '&word_mask=' + this.state.mask);
@@ -78,16 +58,23 @@
             }
 
             handleLetterChange(e) {
-                this.setState({ letters: e.target.value })
-                this.updateMessage()
+                this.setState({ letters: e.target.value }, this.handleButtnClick)
+                
             }
 
             handleSizeChange(e) {
                 this.setState({ wordSize: e.target.value, mask:"" })
             }
 
+            handleSizeSelChange(e) {
+                let value = e.target.options[e.target.selectedIndex].text
+                console.log("value is " + value)
+                this.setState({ wordSize: value, mask:"" }, this.handleButtnClick)
+            }
+
             handleMaskChange(e) {
-                this.setState({ mask: e.target.value })
+                let value = e.target.value.replace(/ /g, "_")
+                this.setState({ mask: value })
             }
 
             wordClick(e){
@@ -96,12 +83,17 @@
 
             biuldSelectWordSize(){
                 let res = []
-                let wSize = this.state.wordSize
+                let wSize = parseInt(this.state.wordSize)
                 let i = 0
-                console.log("the size is " + wSize)
-                for (i=1; i<(parseInt(wSize)+1); i++){
-                    console.log("size step " + i)
-                    res.push(<option value>{i}</option>)
+                let maxLetters = this.state.letters.length
+                for (i=3; i<(maxLetters + 1); i++){
+                    //console.log("size step " + i)
+                    if (i == wSize){
+                        res.push(<option value selected>{i}</option>)
+                    }
+                    else{
+                        res.push(<option value>{i}</option>)
+                    }
                 }
                 return res
             }
@@ -109,7 +101,10 @@
             render() {
                 return (
                     <div>
-                        <legend>Word's Generator</legend>
+                        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                            <legend>Word's Generator</legend>
+                            
+                        </nav>
                         <div className="card">
                             <div className="card-header">
                                 Parameters
@@ -129,8 +124,7 @@
                                         <label for="wordsize">Word Size</label>
                                     </div>
                                     <div className="col">
-                                        <input id="wordsize" onChange={this.handleSizeChange} value={this.state.wordSize} type="text"/>
-                                        <select>
+                                        <select id="wordSelSize" onChange={this.handleSizeSelChange} style={{width: "200px"}}>
                                         {
                                             this.biuldSelectWordSize()
                                         }
@@ -142,26 +136,42 @@
                                         <label for="mask">Mask</label>
                                     </div>
                                     <div className="col">
-                                        <input id="mask" onChange={this.handleMaskChange} value={this.state.mask} type="text"/>
+                                        <input id="wordMask" onChange={this.handleMaskChange} value={this.state.mask} type="text"/>
+                                        {this.state.mask.length}
+                                    </div>
+                                </div>
+                                <div className="row">
+                                    <div className="col" />
+                                    <div className="col">
+                                        <button type="button" className="btn btn-primary" onClick={this.handleButtnClick}>show</button>
                                     </div>
                                 </div>
                             </div>
-                            <button type="button" className="btn btn-secondary" onClick={this.updateMessage}>show</button>
                         </div>
-                        <div className="container">
-                            <table className="table table-hover">
-                                {
-                                    this.state.words.map(word => {
-                                        return (
-                                            <tr><td onClick={this.wordClick} id={word}>
-                                                {word}
-                                            </td></tr>
-                                        )
-                                    })
-                                }
-                                
-                            </table>
-                        </div>
+                        <nav>
+                            <div className="nav nav-tabs" id="nav-tab" role="tablist">
+                                <li className="nav-item">
+                                    <a className="nav-link active" href="#">Words</a>
+                                </li>
+                                <li className="nav-item">
+                                    <a className="nav-link" href="#">Row Data</a>
+                                </li>
+                            </div>
+                        </nav>
+                                <div className="container">
+                                    <table className="table table-hover">
+                                        {
+                                            this.state.words.map(word => {
+                                                return (
+                                                    <tr><td onClick={this.wordClick} id={word}>
+                                                        {word}
+                                                    </td></tr>
+                                                )
+                                            })
+                                        }
+                                        
+                                    </table>
+                                </div>
                     </div>   
                 )
             }    
